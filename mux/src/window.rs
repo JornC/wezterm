@@ -228,7 +228,8 @@ impl Window {
     /// Make given index the active tab without remembering current tab as the "last active" tab.
     pub fn set_active_tab_idx_without_saving(&mut self, idx: usize) {
         assert!(idx < self.tabs.len());
-        if self.active_tab_idx != idx {
+        let changed = self.active_tab_idx != idx;
+        if changed {
             if let Some(tab) = self.tabs.get(self.active_tab_idx) {
                 if let Some(pane) = tab.get_active_pane() {
                     pane.focus_changed(false);
@@ -237,6 +238,12 @@ impl Window {
         }
         self.active_tab_idx = idx;
         self.invalidate();
+        // The guard stops the frontend reconcile from looping.
+        if changed {
+            if let Some(pane) = self.get_active_tab().and_then(|tab| tab.get_active_pane()) {
+                Mux::get().notify(MuxNotification::PaneFocused(pane.pane_id()));
+            }
+        }
     }
 
     /// Iterate over tabs in this window.
