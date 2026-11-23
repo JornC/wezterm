@@ -1473,6 +1473,7 @@ impl TermWindow {
                     | Alert::Bell,
             }
             | MuxNotification::PaneFocused(pane_id)
+            | MuxNotification::PaneAdded(pane_id)
             | MuxNotification::PaneRemoved(pane_id)
             | MuxNotification::PaneOutput(pane_id) => {
                 // Check window validity and propagate to the window event handler
@@ -1485,12 +1486,6 @@ impl TermWindow {
                     return true;
                 }
                 let _ = pane_id;
-            }
-            MuxNotification::PaneAdded(_pane_id) => {
-                // If some other client spawns a pane inside this window, this
-                // gives us an opportunity to attach it to the clipboard.
-                let mux = Mux::get();
-                return mux.get_window(mux_window_id).is_some();
             }
             MuxNotification::TabAddedToWindow { window_id, .. }
             | MuxNotification::WindowTitleChanged { window_id, .. }
